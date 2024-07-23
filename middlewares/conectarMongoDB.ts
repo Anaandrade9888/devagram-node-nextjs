@@ -27,4 +27,4 @@ export const conectarMongoDB = (handler : NextApiHandler) =>
         //agora posso seguir para o endpoint, pois estou conectado
         //no banco
         return handler(req, res);
-    }
+}

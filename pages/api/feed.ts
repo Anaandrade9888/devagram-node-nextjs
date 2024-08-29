@@ -4,6 +4,8 @@ import {validarTokenJWT} from '../../middlewares/validarTokenJWT'
 import {conectarMongoDB} from '../../middlewares/conectarMongoDB'
 import { UsuarioModel } from '@/models/UsuarioModel';
 import { PublicacaoModel } from '@/models/PublicacaoModel';
+import { SeguidorModel } from './SeguidorModel';
+import { off } from 'process';
 
 const  feedEndpoint = async (req : NextApiRequest, res : NextApiResponse<RespostaPadraoMsg | any>) => {
     try{
@@ -15,11 +17,49 @@ const  feedEndpoint = async (req : NextApiRequest, res : NextApiResponse<Respost
                 if(!usuario){
                     return res.status(400).json({erro : 'Usuario nao encontrado'});
                 }
+           
                 //e como buscar no banco as publicacoes dele?
                 const publicacoes = await PublicacaoModel
                 .find({idUsuario : usuario._id})
                 .sort({data : -1});
                 return res.status(200).json(publicacoes);
+            }else{
+                //agora ja estamos no feed principal
+                // qual proximo passo?
+                const {userId} = req.query;
+                const usuarioLogado = await UsuarioModel.findById(userId);
+                if(!usuarioLogado){
+                    return res.status(400).json({erro : 'Usuario nao encontrado'});
+                }
+
+                // isso ira retornar uma lista dos seguidores
+                const seguidores = await SeguidorModel.find({usuarioId : usuarioLogado._id});
+                
+                //mapear os seguidores 
+                const seguidoresIds = seguidores.map( s => s.usuarioSeguidoIdS);
+
+                const publicacoes = await PublicacaoModel.find({
+                    $or : [
+                        {idUsuario : usuarioLogado._id},
+                        {idUsuario : seguidoresIds}
+                    ]
+                })
+                .sort({data : -1});
+
+                const result = [];
+                for (const publicacao of publicacoes) {
+                    const usuarioDaPublicacao = await UsuarioModel.findById(publicacao.idUsuario);
+                    if(usuarioDaPublicacao){
+                        const final = {...publicacao._doc, usuario : {
+                            nome: usuarioDaPublicacao.nome,
+                            avatar : usuarioDaPublicacao.avatar
+                        }};
+
+                        result.push(final);
+                    }
+                }
+
+                return res.status(200).json(result);
             }
         }
        return res.status(400).json({erro :'Metodo informado nao é valido'});

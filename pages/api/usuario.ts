@@ -19,7 +19,7 @@ const handler = nc()
         }
 
         const{nome} = req?.body;
-        if(!nome && nome.length > 2){
+        if(nome && nome.length > 2){
             usuario.nome = nome;
         }
 
@@ -27,7 +27,7 @@ const handler = nc()
         if(file && file.originalname){
             
             const image = await uploadImagemCosmic(req);
-            if(file && image.media && image.media.url){
+            if(image && image.media && image.media.url){
                 usuario.avatar = image.media.url;
             }
         }
@@ -39,11 +39,11 @@ const handler = nc()
 
     }catch(e){
         console.log(e);
-        return res.status(400).json({erro : 'Nao foi possivel atualixar o usuario' + e})
+        return res.status(400).json({erro : 'Nao foi possivel atualixar o usuario' + e});
     }
 })
 
-.get(async (req : any, res : NextApiResponse<RespostaPadraoMsg>) => {
+.get(async (req : NextApiRequest, res : NextApiResponse<RespostaPadraoMsg | any >) => {
     try{
     const {userId} = req?.query;
     const usuario = await UsuarioModel.findById(userId);

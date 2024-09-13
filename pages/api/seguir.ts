@@ -3,7 +3,8 @@ import type {RespostaPadraoMsg} from '../../types/RespostaPadraoMsg';
 import { UsuarioModel } from '@/models/UsuarioModel';
 import { conectarMongoDB } from '@/middlewares/conectarMongoDB';
 import { validarTokenJWT } from '@/middlewares/validarTokenJWT';
-import { SeguidorModel } from './SeguidorModel';
+import { SeguidorModel } from '../../models/SeguidorModel';
+import { politicaCORS } from '@/middlewares/politicaCORS';
 
 
 const endpointSeguir = 
@@ -66,4 +67,4 @@ const endpointSeguir =
     }
 }
 
-export default validarTokenJWT(conectarMongoDB(endpointSeguir));
+export default politicaCORS(validarTokenJWT(conectarMongoDB(endpointSeguir)));

@@ -6,7 +6,7 @@ import md5 from 'md5';
 import {conectarMongoDB} from '../../middlewares/conectarMongoDB';
 import {upload, uploadImagemCosmic} from '../../services/uploadImagemCosmic';
 import nc from 'next-connect';
-
+import {politicaCORS} from '../../middlewares/politicaCORS';
 const handler = nc ()
     .use(upload.single('file'))
     .post(
@@ -39,13 +39,14 @@ const handler = nc ()
             
         //Enviar a imagem do multer para o cosmic
       const image = await uploadImagemCosmic(req);
+      console.log(image);
     
         //salvar no banco de dados
       const usuarioASerSalvo = {
             nome : usuario.nome,
             email : usuario.email,
             senha : md5(usuario.senha),
-            avatar : image?.midea?.url,
+            avatar : image?.media?.url,
             }
         await UsuarioModel.create(usuarioASerSalvo);
         return res.status(200).json({ msg : 'Usuario cadastrado com sucesso'});  
@@ -63,4 +64,4 @@ const handler = nc ()
         },
     };
 
-export default conectarMongoDB(handler);
+export default politicaCORS(conectarMongoDB(handler));
